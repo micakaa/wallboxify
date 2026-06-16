@@ -210,6 +210,11 @@ function cleanup() {
     }
  }
 
+async function refreshNowPlaying() {
+    if (isPollingPaused) return;
+    await updateNowPlaying();
+}
+
 function openModal(trackA, trackB) {
     const modal = document.getElementById('jukebox-modal');
     const btnA = document.getElementById('btn-a');
@@ -252,17 +257,6 @@ async function updateNowPlaying() {
     }
 }
 
-async function startPolling() {
-    setInterval(async () => {
-        // Om vi byter låt manuellt ELLER om polling är pausad, gör inget
-        if (isPlayingManually || isPollingPaused) return; 
-        
-        isPollingPaused = true; // Pausa innan anropet
-        await updateNowPlaying();
-        isPollingPaused = false; // Återuppta efter anropet
-    }, 10000);
-}
-
 async function skipTrack() {
     try {
         await fetch(`${API_URL}/me/player/next`, {
@@ -301,21 +295,16 @@ async function init() {
     accessToken = localStorage.getItem('access_token');
     
     // 3. Visa rätt vy
-    if (accessToken) {
-        console.log("Token finns, startar appen!");
+if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
         
         createOverlay();
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
-        startPolling();
         
-        const skipBtn = document.getElementById('skip-btn');
-        if (skipBtn) skipBtn.addEventListener('click', skipTrack);
-    } else {
-        console.log("Ingen token hittad, visar inloggningsskärm.");
-        document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('app-container').classList.add('hidden');
+        // ISTÄLLET FÖR STARTPOLLING:
+        // Hämta låten EN gång vid start
+        updateNowPlaying(); 
     }
 }
 
