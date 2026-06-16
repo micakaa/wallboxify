@@ -87,14 +87,21 @@ body, html {
 }
 
 /* -- Modal (Popup) -- */
-#song-modal {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.8); z-index: 10;
-    display: flex; align-items: center; justify-content: center;
+#jukebox-modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Viktigt: Sätter modalen högst upp */
 }
+
 .modal-content {
-    background: white; color: black; padding: 30px; border-radius: 10px;
-    text-align: center; min-width: 300px;
+    background: white;
+    padding: 20px;
+    z-index: 1001; /* Ännu högre än modalen */
 }
 .song-btn {
     display: block; width: 100%; padding: 15px; margin: 10px 0;
