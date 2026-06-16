@@ -166,8 +166,25 @@ function renderJukeboxLabels(items) {
             <div class="label-song">${trackB ? trackB.name : '-'}</div>
         `;
 
-        label.addEventListener('click', () => openModal(artistName, trackA, trackB));
+        // Ändra anropet i loopen så att den skickar med specifika låten
+        label.addEventListener('click', () => playTrack(trackA.uri));
         container.appendChild(label);
+    }
+}
+
+async function playTrack(uri) {
+    try {
+        await fetch(`${API_URL}/me/player/play`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ uris: [uri] }) // Här används URI:n du klickade på!
+        });
+        console.log("Spelar nu: " + uri);
+    } catch (error) {
+        console.error("Fel vid uppspelning:", error);
     }
 }
 
@@ -196,24 +213,30 @@ async function openModal(artistName, trackA, trackB) {
 }
 
 async function startPolling() {
+    console.log("Polling har startat!"); // Logga bara en gång vid start
+    
     setInterval(async () => {
         try {
             const response = await fetch(`${API_URL}/me/player/currently-playing`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-            
+
             if (response.status === 200) {
                 const data = await response.json();
-                if (data.item) {
-                    // Se till att elementet med ID 'track-name' finns i din HTML!
+                if (data && data.item) {
+                    console.log("Nu spelas:", data.item.name); // Logga varje gång vi får svar
                     const el = document.getElementById('track-name');
                     if (el) el.innerText = data.item.name;
                 }
+            } else if (response.status === 204) {
+                const el = document.getElementById('track-name');
+                if (el) el.innerText = "Ingen låt spelas";
             }
         } catch (err) {
+            // Vi loggar felet men loopen fortsätter tack vare try-catch!
             console.error("Polling-fel:", err);
         }
-    }, 3000);
+    }, 5000); // Höjt till 5 sekunder för att inte spamma Spotify-API:et
 }
 
 
