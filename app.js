@@ -302,5 +302,26 @@ async function skipTrack() {
         console.log("Skippade låt!");
     } catch (err) { console.error("Skip misslyckades", err); }
 }
+function createOverlay() {
+    const container = document.getElementById('layer1-labels');
+    const overlay = document.createElement('div');
+    overlay.id = 'loading-overlay';
+    overlay.className = 'hidden';
+    overlay.innerText = 'Väntar på Spotify...';
+    container.appendChild(overlay);
+}
+
+// Uppdatera din init() så den anropar createOverlay()
+async function init() {
+    // ... befintlig kod ...
+    if (accessToken) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        createOverlay(); // Skapa overlayen när appen startar
+        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
+        startPolling();
+        // ...
+    }
+}
 
 init();
