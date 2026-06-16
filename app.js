@@ -63,34 +63,6 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     window.location.href = AUTH_URL + args.toString();
 });
 
-async function init() {
-    console.log("Init körs...");
-    const urlParams = new URLSearchParams(window.location.search);
-    let code = urlParams.get('code');
-    
-    // 1. Om vi har kod i URL:en, byt ut den mot en token NU
-    if (code) {
-        console.log("Kod hittad i URL, byter ut mot token...");
-        await getToken(code);
-        // Rensa URL:en så vi inte triggar detta igen
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-    
-    // 2. Hämta accessToken från localStorage (nu ska den finnas där)
-    accessToken = localStorage.getItem('access_token');
-    console.log("Token läst från storage:", accessToken);
-    
-if (accessToken) {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app-container').classList.remove('hidden');
-        
-        createOverlay(); // Detta skapar elementet nu
-        
-        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
-        startPolling();
-    }
-}
-
 async function getToken(code) {
     const codeVerifier = localStorage.getItem('code_verifier');
     if (!codeVerifier) {
@@ -305,6 +277,40 @@ function createOverlay() {
         container.appendChild(overlay);
     }
     return overlay;
+}
+
+async function init() {
+    console.log("Init körs...");
+    const urlParams = new URLSearchParams(window.location.search);
+    let code = urlParams.get('code');
+    
+    // 1. Om vi har kod, byt ut den mot en token
+    if (code) {
+        console.log("Kod hittad, byter ut mot token...");
+        await getToken(code);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    // 2. Hämta token och uppdatera den globala variabeln
+    accessToken = localStorage.getItem('access_token');
+    
+    // 3. Visa rätt vy
+    if (accessToken) {
+        console.log("Token finns, startar appen!");
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        
+        createOverlay();
+        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
+        startPolling();
+        
+        const skipBtn = document.getElementById('skip-btn');
+        if (skipBtn) skipBtn.addEventListener('click', skipTrack);
+    } else {
+        console.log("Ingen token hittad, visar inloggningsskärm.");
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('app-container').classList.add('hidden');
+    }
 }
 
 init();
