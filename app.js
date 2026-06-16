@@ -141,6 +141,8 @@ async function loadPlaylist(playlistId) {
 function renderJukeboxLabels(items) {
     const container = document.getElementById('layer1-labels');
     container.innerHTML = '';
+
+    console.log("Antal items som skickas till renderare:", items.length); // DEBUG
     
     // Vi filtrerar stenhårt:
     // 1. item måste finnas
@@ -149,6 +151,8 @@ function renderJukeboxLabels(items) {
     const tracks = items
         .filter(item => item && item.track && item.track.artists && item.track.artists.length > 0)
         .map(item => item.track);
+
+    console.log("Antal låtar efter filtrering:", tracks.length); // DEBUG
 
     for (let i = 0; i < tracks.length; i += 2) {
         const trackA = tracks[i];
