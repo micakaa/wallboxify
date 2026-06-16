@@ -36,6 +36,7 @@ body, html {
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch; /* Mjuk scroll på iPad */
     z-index: 1;
+    position: relative;
 }
 
 .jukebox-label {
@@ -97,11 +98,6 @@ body, html {
     justify-content: center;
     align-items: center;
     z-index: 999;
-}
-
-/* Se till att containern för labels har en position */
-#layer1-labels {
-    position: relative; /* Viktigt! Detta gör att overlayen stannar INUTI denna box */
 }
 
 /* -- Modal (Popup) -- */
