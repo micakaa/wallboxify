@@ -207,6 +207,7 @@ async function playTrack(uri) {
     if (overlay) {
         overlay.classList.add('hidden');
     }
+ }
 }
 function openModal(trackA, trackB) {
     const modal = document.getElementById('jukebox-modal');
