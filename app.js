@@ -216,6 +216,36 @@ async function playTrack(uri) {
     }
 }
 
+async function queueTrack(uri) {
+    let overlay = document.getElementById('loading-overlay') || createOverlay();
+    overlay.classList.remove('hidden');
+    
+    try {
+        // Skicka kommandot till Spotifys kö-API istället för play
+        const response = await fetch(`${API_URL}/me/player/queue?uri=${encodeURIComponent(uri)}`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        if (response.ok || response.status === 204) {
+            // Vänta en kort stund för att Spotify ska hinna registrera ändringen
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            // Tvinga fram en uppdatering av kön så vi ser låten dyka upp direkt
+            await loadQueue(); 
+            console.log("Låt tillagd i kön!");
+        } else if (response.status === 429) {
+            console.error("Rate limit nådd! Vänta en stund innan nästa försök.");
+        }
+    } catch (error) {
+        console.error("Fel vid tillägg i kön:", error);
+    } finally {
+        overlay.classList.add('hidden');
+    }
+}
+
 function openModal(trackA, trackB) {
     const modal = document.getElementById('jukebox-modal');
     const btnA = document.getElementById('btn-a');
@@ -224,20 +254,20 @@ function openModal(trackA, trackB) {
     // Sätt upp Knapp A
     btnA.innerText = trackA.name;
     btnA.onclick = () => { 
-        playTrack(trackA.uri); 
+        queueTrack(trackA.uri); // Ändrat från playTrack
         closeModal(); 
     };
     
-    // Sätt upp Knapp B (om det finns en andra låt på lappen)
+    // Sätt upp Knapp B
     if (trackB) {
         btnB.innerText = trackB.name;
         btnB.onclick = () => { 
-            playTrack(trackB.uri); 
+            queueTrack(trackB.uri); // Ändrat från playTrack
             closeModal(); 
         };
     } else {
         btnB.innerText = "Ingen låt";
-        btnB.onclick = null; // Avaktivera knappen om låt saknas
+        btnB.onclick = null; 
     }
 
     modal.classList.remove('hidden');
