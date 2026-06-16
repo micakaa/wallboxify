@@ -195,8 +195,23 @@ async function playTrack(uri) {
             body: JSON.stringify({ uris: [uri] })
         });
 
-        // Vänta 1 sekund så Spotify hinner byta låt, uppdatera sedan UI direkt
-        setTimeout(updateNowPlaying, 1000); 
+        // Loop som kollar 3 gånger med 500ms mellanrum för att bekräfta bytet
+        let retries = 3;
+        const check = setInterval(async () => {
+            const response = await fetch(`${API_URL}/me/player/currently-playing`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const data = await response.json();
+            
+            // Om låten vi får tillbaka matchar den vi skickade, så lyckades bytet!
+            if (data.item && data.item.uri === uri) {
+                updateNowPlaying();
+                clearInterval(check);
+            }
+            
+            retries--;
+            if (retries === 0) clearInterval(check);
+        }, 500);
 
     } catch (error) {
         console.error("Fel vid uppspelning:", error);
