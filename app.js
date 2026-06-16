@@ -188,28 +188,22 @@ async function playTrack(uri) {
     }
 }
 
-async function openModal(artistName, trackA, trackB) {
-    // För enkelhetens skull, låt oss säga att vi vill spela trackA när man klickar
-    const uriToPlay = trackA.uri; 
+function openModal(trackA, trackB) {
+    const modal = document.getElementById('jukebox-modal');
+    const btnA = document.getElementById('btn-a');
+    const btnB = document.getElementById('btn-b');
 
-    try {
-        const response = await fetch(`${API_URL}/me/player/play`, {
-            method: 'PUT',
-            headers: { 
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ uris: [uriToPlay] })
-        });
+    btnA.innerText = trackA.name;
+    btnA.onclick = () => { playTrack(trackA.uri); closeModal(); };
+    
+    btnB.innerText = trackB ? trackB.name : "Ingen låt";
+    btnB.onclick = trackB ? () => { playTrack(trackB.uri); closeModal(); } : null;
 
-        if (response.status === 204) {
-            console.log("Spotify spelar nu: " + trackA.name);
-        } else {
-            console.error("Kunde inte starta uppspelning, kolla att Spotify är öppet på en enhet!");
-        }
-    } catch (error) {
-        console.error("Fel vid uppspelning:", error);
-    }
+    modal.classList.remove('hidden'); // Visa modalen
+}
+
+function closeModal() {
+    document.getElementById('jukebox-modal').classList.add('hidden');
 }
 
 async function startPolling() {
@@ -239,5 +233,17 @@ async function startPolling() {
     }, 5000); // Höjt till 5 sekunder för att inte spamma Spotify-API:et
 }
 
+async function skipTrack() {
+    try {
+        await fetch(`${API_URL}/me/player/next`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        console.log("Skippade låt!");
+    } catch (err) { console.error("Skip misslyckades", err); }
+}
+
+// Koppla knappen i init eller direkt i HTML
+document.querySelector('.skip-btn').addEventListener('click', skipTrack);
 
 init();
