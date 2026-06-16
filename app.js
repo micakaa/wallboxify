@@ -171,14 +171,34 @@ function renderJukeboxLabels(items) {
     }
 }
 
-function openModal(artistName, trackA, trackB) {
-    alert("Du klickade på: " + artistName);
-    // Här lägger du senare till logik för att visa en ruta på skärmen
+async function openModal(artistName, trackA, trackB) {
+    // För enkelhetens skull, låt oss säga att vi vill spela trackA när man klickar
+    const uriToPlay = trackA.uri; 
+
+    try {
+        const response = await fetch(`${API_URL}/me/player/play`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ uris: [uriToPlay] })
+        });
+
+        if (response.status === 204) {
+            console.log("Spotify spelar nu: " + trackA.name);
+        } else {
+            console.error("Kunde inte starta uppspelning, kolla att Spotify är öppet på en enhet!");
+        }
+    } catch (error) {
+        console.error("Fel vid uppspelning:", error);
+    }
 }
 
 async function startPolling() {
     // Hämta status var 3:e sekund
     setInterval(async () => {
+        console.log("Polling körs..."); // <--- SER DU DENNA I KONSOLEN?
         try {
             const response = await fetch(`${API_URL}/me/player/currently-playing`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -187,6 +207,10 @@ async function startPolling() {
                 const data = await response.json();
                 // Här uppdaterar du HTML-elementen för "Nu spelas"
                 document.getElementById('track-name').innerText = data.item.name;
+                }
+                } else if (response.status === 204) {
+                document.getElementById('track-name').innerText = "Ingen låt spelas";
+                }
             }
         } catch (err) { console.error("Polling-fel", err); }
     }, 3000);
