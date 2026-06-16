@@ -58,13 +58,14 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     
     const args = new URLSearchParams({
-        response_type: 'code',
-        client_id: CLIENT_ID,
-        scope: SCOPES.join(' '),
-        redirect_uri: REDIRECT_URI,
-        code_challenge_method: 'S256',
-        code_challenge: codeChallenge
-    });
+    response_type: 'code',
+    client_id: CLIENT_ID,
+    scope: SCOPES.join(' '),
+    redirect_uri: REDIRECT_URI,
+    code_challenge_method: 'S256',
+    code_challenge: codeChallenge,
+    show_dialog: 'true' // <-- Denna tvingar fram en ny inloggningsruta
+});
 
     window.location.href = AUTH_URL + args.toString();
 });
@@ -84,7 +85,7 @@ async function init() {
         document.getElementById('app-container').classList.remove('hidden');
         
         // Här måste vi anropa funktionen och skicka med ID:t
-        loadPlaylist('37i9dQZF1DWTMYgB8TqtmR'); 
+        loadPlaylist('0EhSuHg92oacvq77lKHp1B'); 
         
         startPolling();
     }
@@ -130,14 +131,17 @@ async function loadPlaylist(playlistId) {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         
-        if (!response.ok) {
-            console.error("Spotify-fel:", response.status);
-            return; // Stoppa här om det är 403
+        // Här kollar vi om Spotify säger nej
+        if (response.status === 403) {
+            console.error("403 Forbidden: Spotify nekar tillgång. Har du rätt Scopes?");
+            return;
         }
 
         const data = await response.json();
         
-        // Säkerhetskoll: Om data.items finns, kör .map
+        // Extra säkerhetskoll: logga data för att se vad vi får
+        console.log("Svar från Spotify:", data);
+
         if (data && data.items) {
             const tracks = data.items.map(item => item.track).filter(track => track !== null);
             renderJukeboxLabels(tracks);
