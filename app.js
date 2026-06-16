@@ -101,7 +101,7 @@ async function getToken(code) {
 
 async function loadPlaylist(playlistId) {
     try {
-        const response = await fetch(`${API_URL}/playlists/${playlistId}/tracks?limit=100`, {
+        const response = await fetch(`${API_URL}/playlists/${playlistId}/items?limit=100`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         if (response.status === 403) { console.error("403 Forbidden"); return; }
