@@ -77,10 +77,10 @@ async function init() {
         startPolling();
 
         // Koppla knappen HÄR, när vi vet att appen är laddad
-        const skipBtn = document.querySelector('.skip-btn');
-        if (skipBtn) {
-            skipBtn.addEventListener('click', skipTrack);
-        }
+        const skipBtn = document.getElementById('skip-btn');
+if (skipBtn) {
+    skipBtn.addEventListener('click', skipTrack);
+}
     }
 }
     }
@@ -232,7 +232,7 @@ async function startPolling() {
                 const data = await response.json();
                 if (data && data.item) {
                     console.log("Nu spelas:", data.item.name); // Logga varje gång vi får svar
-                    const el = document.getElementById('track-name');
+                    const el = document.getElementById('np-title'); 
                     if (el) el.innerText = data.item.name;
                 }
             } else if (response.status === 204) {
