@@ -72,7 +72,7 @@ async function init() {
         await getToken(code);
     }
     
-    // Kör bara logiken EN gång om vi har en token
+    // Vi kollar bara accessToken EN gång här
     if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
@@ -85,8 +85,7 @@ async function init() {
         }
     }
 }
-    }
-    
+
     // VIKTIGT: Kontrollera att denna körs
     console.log("Token finns:", !!accessToken); 
     
