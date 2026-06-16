@@ -151,13 +151,13 @@ let isPlayingManually = false;
 let currentCheckLoop = null;
 
 async function playTrack(uri) {
-    const overlay = document.getElementById('loading-overlay');
-    
-    if (overlay) {
-        overlay.classList.remove('hidden');
-    } else {
-        console.warn("Kunde inte hitta loading-overlay i DOM:en!");
+    // VIKTIG ÄNDRING: Hämta overlayn här, och om den inte finns, skapa den direkt!
+    let overlay = document.getElementById('loading-overlay');
+    if (!overlay) {
+        overlay = createOverlay(); 
     }
+    
+    overlay.classList.remove('hidden'); // Nu kommer detta garanterat fungera
     
     isPlayingManually = true;
     if (currentCheckLoop) clearInterval(currentCheckLoop);
