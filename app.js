@@ -63,26 +63,24 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     window.location.href = AUTH_URL + args.toString();
 });
 
-// --- App-Logik ---
 async function init() {
     const urlParams = new URLSearchParams(window.location.search);
     let code = urlParams.get('code');
-    
     if (code) {
         console.log("Kod funnen, byter...");
-        await getToken(code);
+        await getToken(code); // <-- Await här är avgörande!
         window.history.replaceState({}, document.title, window.location.pathname);
     }
     
     accessToken = localStorage.getItem('access_token');
+    console.log("Token finns:", !!accessToken);
     
+    // 3. Kontrollera och starta appen
     if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
         
-        // Viktigt: Skapa overlayen när appen är synlig
         createOverlay(); 
-        
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
         startPolling();
 
@@ -90,6 +88,9 @@ async function init() {
         if (skipBtn) {
             skipBtn.addEventListener('click', skipTrack);
         }
+    } else {
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('app-container').classList.add('hidden');
     }
 }
 
@@ -115,7 +116,6 @@ function createOverlay() {
         startPolling();
     }
 
-// --- Inloggnings-logik ---
 async function getToken(code) {
     let codeVerifier = localStorage.getItem('code_verifier');
     
@@ -158,7 +158,6 @@ async function getToken(code) {
 
 async function loadPlaylist(playlistId) {
     try {
-        // OBS! Vi använder /tracks här, det är den officiella endpointen
         const response = await fetch(`${API_URL}/playlists/${playlistId}/items`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
@@ -167,7 +166,6 @@ async function loadPlaylist(playlistId) {
         
         console.log("Spotify svarar med:", data); 
 
-        // För /tracks endpointen heter datan 'items' direkt
         if (data && data.items) {
             renderJukeboxLabels(data.items);
         }
@@ -180,7 +178,6 @@ function renderJukeboxLabels(items) {
     const container = document.getElementById('layer1-labels');
     container.innerHTML = '';
     
-    // Vi filtrerar på 'item.item' eftersom det är där din låtdata ligger
     const tracks = items
         .filter(i => i && i.item && i.item.name) 
         .map(i => i.item);
@@ -191,7 +188,6 @@ function renderJukeboxLabels(items) {
         const trackA = tracks[i];
         const trackB = tracks[i + 1]; 
         
-        // Vi hämtar artisten från trackA.artists
         const artistName = trackA.artists && trackA.artists.length > 0 
                            ? trackA.artists[0].name 
                            : "Okänd artist";
@@ -204,7 +200,6 @@ function renderJukeboxLabels(items) {
             <div class="label-song">${trackB ? trackB.name : '-'}</div>
         `;
 
-        // Ändra denna rad inne i din for-loop:
 label.addEventListener('click', () => openModal(trackA, trackB));
         container.appendChild(label);
     }
@@ -216,7 +211,6 @@ let currentCheckLoop = null;
 async function playTrack(uri) {
     const overlay = document.getElementById('loading-overlay');
     
-    // Om overlay inte hittas, logga ett fel men fortsätt ändå så appen inte dör
     if (overlay) {
         overlay.classList.remove('hidden');
     } else {
@@ -261,7 +255,6 @@ async function playTrack(uri) {
         cleanup();
     }
 
-    // Hjälpfunktion för att städa upp
     function cleanup() {
         if (currentCheckLoop) clearInterval(currentCheckLoop);
         currentCheckLoop = null;
