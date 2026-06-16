@@ -1,6 +1,6 @@
 const CLIENT_ID = '967bcd3da47147ea807f9f951a1e0281';
 const REDIRECT_URI = 'https://micakaa.github.io/wallboxify/';
-const AUTH_URL = 'https://accounts.spotify.com/authorize';
+const AUTH_URL = 'https://accounts.spotify.com/authorize?';
 const TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const API_URL = 'https://api.spotify.com/v1';
 
