@@ -190,7 +190,13 @@ let currentCheckLoop = null;
 
 async function playTrack(uri) {
     const overlay = document.getElementById('loading-overlay');
-    overlay.classList.remove('hidden'); // Aktivera grått filter/paus
+    
+    // Om overlay inte hittas, logga ett fel men fortsätt ändå så appen inte dör
+    if (overlay) {
+        overlay.classList.remove('hidden');
+    } else {
+        console.warn("Kunde inte hitta loading-overlay i DOM:en!");
+    }
     
     isPlayingManually = true;
     if (currentCheckLoop) clearInterval(currentCheckLoop);
