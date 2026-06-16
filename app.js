@@ -277,9 +277,7 @@ if (accessToken) {
         createOverlay();
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
         
-        // ISTÄLLET FÖR STARTPOLLING:
-        // Hämta låten EN gång vid start
-        updateNowPlaying(); 
+        //updateNowPlaying(); 
     }
 }
 
