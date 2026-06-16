@@ -117,16 +117,19 @@ function renderJukeboxLabels(items) {
     const container = document.getElementById('layer1-labels');
     container.innerHTML = '';
     
-    // Vi filtrerar fram bara de objekt som faktiskt har ett 'track'-fält
+    // Vi filtrerar stenhårt:
+    // 1. item måste finnas
+    // 2. item.track måste finnas
+    // 3. item.track.artists måste finnas
     const tracks = items
-        .filter(item => item.track !== null && item.track.artists)
+        .filter(item => item && item.track && item.track.artists && item.track.artists.length > 0)
         .map(item => item.track);
 
     for (let i = 0; i < tracks.length; i += 2) {
         const trackA = tracks[i];
         const trackB = tracks[i + 1]; 
         
-        // Nu finns trackA.artists, så detta kommer inte längre krascha
+        // Nu är vi 100% säkra på att trackA och trackA.artists finns
         const artistName = trackA.artists[0].name;
 
         const label = document.createElement('div');
