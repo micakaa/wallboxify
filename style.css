@@ -1,0 +1,103 @@
+:root {
+    /* Justera dessa för att ändra hur många lappar som får plats */
+    --rows: 5;
+    --label-width: 250px;
+}
+
+body, html {
+    margin: 0; padding: 0;
+    width: 100vw; height: 100vh;
+    background-color: #222;
+    color: white;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    overflow: hidden; /* Förhindrar zoom/scroll på hela sidan */
+}
+
+.hidden { display: none !important; }
+
+/* Inloggning */
+#login-screen {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; height: 100vh;
+}
+#login-btn { padding: 15px 30px; font-size: 20px; border-radius: 25px; background: #1DB954; color: white; border: none; cursor: pointer; }
+
+/* -- LAGER 1: Lapparna -- */
+#layer1-labels {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 120px; /* Lämnar plats för layer 3 */
+    display: grid;
+    grid-template-rows: repeat(var(--rows), 1fr);
+    grid-auto-flow: column; /* Fyller kolumner nedåt, lägger till nya åt höger */
+    grid-auto-columns: var(--label-width);
+    gap: 10px;
+    padding: 20px;
+    padding-bottom: 40px; /* Extra plats så inte botten ramlar in under ramen */
+    overflow-x: auto; /* Tillåter scroll i sidled */
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; /* Mjuk scroll på iPad */
+    z-index: 1;
+}
+
+.jukebox-label {
+    background: #e8e6d9; /* Lätt gulnad pappersfärg */
+    color: black;
+    border: 2px solid #a32222;
+    border-radius: 4px;
+    display: flex; flex-direction: column;
+    justify-content: space-between; align-items: center;
+    padding: 5px; cursor: pointer;
+    text-align: center;
+}
+.label-song { font-size: 12px; font-weight: bold; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.label-artist { font-size: 14px; color: #a32222; font-weight: 900; }
+
+/* -- LAGER 2: Ramen -- */
+#layer2-frame {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 120px;
+    pointer-events: none; /* VIKTIGT: Gör att klick går igenom till Layer 1 */
+    /* Ersätt url nedan med din faktiska ram-bild när du har den */
+    background: url('din-ram-bild.png') no-repeat center center;
+    background-size: 100% 100%;
+    z-index: 2;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.8); /* Fusk-retro skugga så länge */
+}
+
+/* -- LAGER 3: Spelarkontroller -- */
+#layer3-controls {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 120px;
+    background: #111; z-index: 3;
+    display: flex; justify-content: space-between; align-items: center;
+    box-sizing: border-box; padding: 10px 20px; border-top: 3px solid #333;
+}
+
+#now-playing { display: flex; align-items: center; width: 30%; }
+#np-image { width: 80px; height: 80px; background: #333; margin-right: 15px; }
+#np-title { font-size: 18px; font-weight: bold; }
+#np-artist { font-size: 14px; color: #aaa; }
+
+#queue-display { width: 40%; text-align: center; }
+.queue-title { font-size: 12px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
+#queue-list { font-size: 14px; }
+
+#controls-right { width: 30%; display: flex; justify-content: flex-end; }
+#skip-btn {
+    background: #d32f2f; color: white; border: none;
+    padding: 15px 30px; font-size: 24px; font-weight: bold;
+    border-radius: 8px; cursor: pointer;
+}
+
+/* -- Modal (Popup) -- */
+#song-modal {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.8); z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+}
+.modal-content {
+    background: white; color: black; padding: 30px; border-radius: 10px;
+    text-align: center; min-width: 300px;
+}
+.song-btn {
+    display: block; width: 100%; padding: 15px; margin: 10px 0;
+    font-size: 18px; cursor: pointer; background: #eee; border: 2px solid #ccc;
+}
+#close-modal { margin-top: 20px; padding: 10px 20px; background: #999; color: white; border: none; cursor: pointer;}

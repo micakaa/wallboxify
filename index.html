@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wallboxify</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login-screen">
+        <h1>Wallboxify</h1>
+        <button id="login-btn">Logga in med Spotify</button>
+    </div>
+
+    <div id="app-container" class="hidden">
+        
+        <div id="layer1-labels">
+            </div>
+
+        <div id="layer2-frame"></div>
+
+        <div id="layer3-controls">
+            <div id="now-playing">
+                <img id="np-image" src="" alt="Album Art">
+                <div class="np-info">
+                    <div id="np-title">Ingen låt spelas</div>
+                    <div id="np-artist">-</div>
+                </div>
+            </div>
+            
+            <div id="queue-display">
+                <div class="queue-title">Kommande:</div>
+                <div id="queue-list">Laddar kö...</div>
+            </div>
+            
+            <div id="controls-right">
+                <button id="skip-btn">SKIP &#9193;</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="song-modal" class="hidden">
+        <div class="modal-content">
+            <h2 id="modal-artist">Artistnamn</h2>
+            <button id="btn-song-a" class="song-btn">Låt A</button>
+            <button id="btn-song-b" class="song-btn">Låt B</button>
+            <button id="close-modal">Avbryt</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
