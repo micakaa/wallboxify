@@ -15,6 +15,7 @@ const SCOPES = [
 ];
 
 let accessToken = localStorage.getItem('access_token') || '';
+let isPollingPaused = false;
 
 // --- PKCE & Hjälpfunktioner ---
 function generateRandomString(length) {
@@ -151,6 +152,7 @@ let isPlayingManually = false;
 let currentCheckLoop = null;
 
 async function playTrack(uri) {
+    isPollingPaused = true; // Pausa polling direkt när vi klickar
     // VIKTIG ÄNDRING: Hämta overlayn här, och om den inte finns, skapa den direkt!
     let overlay = document.getElementById('loading-overlay');
     if (!overlay) {
@@ -197,15 +199,14 @@ async function playTrack(uri) {
         cleanup();
     }
 
-    function cleanup() {
-    if (currentCheckLoop) clearInterval(currentCheckLoop);
-    currentCheckLoop = null;
-    isPlayingManually = false;
-    
-    // Hämta overlayen säkert
-    const overlay = document.getElementById('loading-overlay');
-    if (overlay) {
-        overlay.classList.add('hidden');
+function cleanup() {
+        if (currentCheckLoop) clearInterval(currentCheckLoop);
+        currentCheckLoop = null;
+        isPlayingManually = false;
+        isPollingPaused = false; // Återuppta polling!
+        
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) overlay.classList.add('hidden');
     }
  }
 }
@@ -253,9 +254,13 @@ async function updateNowPlaying() {
 
 async function startPolling() {
     setInterval(async () => {
-        if (isPlayingManually) return; // Gör inget om vi precis bytt låt manuellt
+        // Om vi byter låt manuellt ELLER om polling är pausad, gör inget
+        if (isPlayingManually || isPollingPaused) return; 
+        
+        isPollingPaused = true; // Pausa innan anropet
         await updateNowPlaying();
-    }, 5000);
+        isPollingPaused = false; // Återuppta efter anropet
+    }, 10000);
 }
 
 async function skipTrack() {
