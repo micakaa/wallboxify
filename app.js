@@ -151,45 +151,38 @@ label.addEventListener('click', () => openModal(trackA, trackB));
 let isPlayingManually = false;
 let currentCheckLoop = null;
 
-
-
 async function playTrack(uri) {
-    // 1. Visa overlay
-    let overlay = document.getElementById('loading-overlay') || createOverlay();
-    overlay.classList.remove('hidden');
-    
-    isPlayingManually = true;
+    // 1. Visa overlay
+    let overlay = document.getElementById('loading-overlay') || createOverlay();
+    overlay.classList.remove('hidden');
+    
+    isPlayingManually = true;
 
-    try {
-        // 2. Skicka play-kommando
-        await fetch(`${API_URL}/me/player/play`, {
-            method: 'PUT',
-            headers: { 
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ uris: [uri] })
-        });
+    try {
+        // 2. Skicka play-kommando
+        await fetch(`${API_URL}/me/player/play`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ uris: [uri] })
+        });
 
-        // 3. Vänta kort stund (Spotify behöver några millisekunder för att reagera)
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // 3. Vänta kort stund (Spotify behöver några millisekunder för att reagera)
+        await new Promise(resolve => setTimeout(resolve, 800));
 
-        // 4. Uppdatera UI EN GÅNG
-        await updateNowPlaying();
-        
-        console.log("Låt uppdaterad!");
-    } catch (error) {
-        console.error("Fel vid uppspelning:", error);
-    } finally {
-        // 5. Stäng overlay och återställ flaggor
-        isPlayingManually = false;
-        overlay.classList.add('hidden');
-    }
-}
-
-async function refreshNowPlaying() {
-    if (isPollingPaused) return;
-    await updateNowPlaying();
+        // 4. Uppdatera UI EN GÅNG
+        await updateNowPlaying();
+        
+        console.log("Låt uppdaterad!");
+    } catch (error) {
+        console.error("Fel vid uppspelning:", error);
+    } finally {
+        // 5. Stäng overlay och återställ flaggor
+        isPlayingManually = false;
+        overlay.classList.add('hidden');
+    }
 }
 
 function openModal(trackA, trackB) {
@@ -256,32 +249,38 @@ function createOverlay() {
     return overlay;
 }
 
+async function refreshNowPlaying() {
+    if (isPollingPaused) return;
+    await updateNowPlaying();
+}
+
 async function init() {
     console.log("Init körs...");
     const urlParams = new URLSearchParams(window.location.search);
     let code = urlParams.get('code');
     
+    // 1. Om vi har kod, byt ut den mot en token
     if (code) {
         console.log("Kod hittad, byter ut mot token...");
         await getToken(code);
         window.history.replaceState({}, document.title, window.location.pathname);
     }
     
+    // 2. Hämta token och uppdatera den globala variabeln
     accessToken = localStorage.getItem('access_token');
     
-    if (accessToken) {
-        console.log("Token finns, startar appen!");
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app-container').classList.remove('hidden');
-        
-        createOverlay();
-        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
-        updateNowPlaying(); 
-    } else {
-        console.log("Ingen token hittad, visar inloggningsskärm.");
-        document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('app-container').classList.add('hidden');
-    }
+    // 3. Visa rätt vy
+if (accessToken) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        
+        createOverlay();
+        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
+        
+        // ISTÄLLET FÖR STARTPOLLING:
+        // Hämta låten EN gång vid start
+        updateNowPlaying(); 
+    }
 }
 
 init();
