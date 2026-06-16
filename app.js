@@ -85,22 +85,37 @@ async function init() {
 
 async function getToken(code) {
     let codeVerifier = localStorage.getItem('code_verifier');
+    
+    // Om vi inte har en verifier, avbryt direkt
+    if (!codeVerifier) return;
+
     const payload = {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-            client_id: CLIENT_ID, grant_type: 'authorization_code', code: code,
-            redirect_uri: REDIRECT_URI, code_verifier: codeVerifier
-        })
+            client_id: CLIENT_ID,
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: REDIRECT_URI,
+            code_verifier: codeVerifier,
+        }),
     };
+
     try {
         const response = await fetch(TOKEN_URL, payload);
         const data = await response.json();
+        
         if (data.access_token) {
             accessToken = data.access_token;
             localStorage.setItem('access_token', accessToken);
+            // Ta bort verifier när den är använd så vi inte försöker igen
+            localStorage.removeItem('code_verifier'); 
+        } else {
+            console.warn("Kunde inte byta kod, troligen redan använd.");
         }
-    } catch (error) { console.error("Token-fel:", error); }
+    } catch (error) { 
+        console.error("Token-fel:", error); 
+    }
 }
 
 async function loadPlaylist(playlistId) {
