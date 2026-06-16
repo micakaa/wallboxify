@@ -196,25 +196,23 @@ async function openModal(artistName, trackA, trackB) {
 }
 
 async function startPolling() {
-    // Hämta status var 3:e sekund
     setInterval(async () => {
-        console.log("Polling körs..."); // <--- SER DU DENNA I KONSOLEN?
         try {
             const response = await fetch(`${API_URL}/me/player/currently-playing`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
+            
             if (response.status === 200) {
                 const data = await response.json();
-                // Här uppdaterar du HTML-elementen för "Nu spelas"
-                document.getElementById('track-name').innerText = data.item.name;
-                } catch (error) {
-                    console.error("Ett fel uppstod:", error);
-                }
-                } else if (response.status === 204) {
-                document.getElementById('track-name').innerText = "Ingen låt spelas";
+                if (data.item) {
+                    // Se till att elementet med ID 'track-name' finns i din HTML!
+                    const el = document.getElementById('track-name');
+                    if (el) el.innerText = data.item.name;
                 }
             }
-        } catch (err) { console.error("Polling-fel", err); }
+        } catch (err) {
+            console.error("Polling-fel:", err);
+        }
     }, 3000);
 }
 
