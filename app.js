@@ -131,17 +131,15 @@ async function loadPlaylist(playlistId) {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         
-        // Här kollar vi om Spotify säger nej
+        // Här kollar vi om Spotify säger nej (403)
         if (response.status === 403) {
-            console.error("403 Forbidden: Spotify nekar tillgång. Har du rätt Scopes?");
-            return;
+            console.error("403 Forbidden: Spotify nekar tillgång.");
+            return; // Detta är OKEJ nu, så länge det är INUTI funktionen
         }
 
         const data = await response.json();
         
-        // Extra säkerhetskoll: logga data för att se vad vi får
-        console.log("Svar från Spotify:", data);
-
+        // Säkerhetskoll
         if (data && data.items) {
             const tracks = data.items.map(item => item.track).filter(track => track !== null);
             renderJukeboxLabels(tracks);
