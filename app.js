@@ -15,7 +15,6 @@ const SCOPES = [
 ];
 
 let accessToken = localStorage.getItem('access_token') || '';
-let isPollingPaused = false;
 
 // --- PKCE & Hjälpfunktioner ---
 function generateRandomString(length) {
@@ -66,10 +65,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 
 async function getToken(code) {
     const codeVerifier = localStorage.getItem('code_verifier');
-    if (!codeVerifier) {
-        console.error("KRITISKT FEL: code_verifier saknas!");
-        return;
-    }
+    if (!codeVerifier) return;
 
     const body = new URLSearchParams({
         client_id: CLIENT_ID,
@@ -85,55 +81,37 @@ async function getToken(code) {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: body
         });
-        
         const data = await response.json();
-        console.log("Svar från Spotify (Token):", data);
-        
         if (data.access_token) {
             localStorage.setItem('access_token', data.access_token);
-            console.log("Token sparades i localStorage!");
-        } else {
-            console.error("Spotify gav ingen token. Svar:", data);
+            accessToken = data.access_token;
         }
     } catch (e) {
-        console.error("Nätverksfel vid token-hämtning:", e);
+        console.error("Fel vid token-hämtning:", e);
     }
 }
+
 async function loadPlaylist(playlistId) {
     try {
         const response = await fetch(`${API_URL}/playlists/${playlistId}/items`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
-        
         const data = await response.json();
-        
-        console.log("Spotify svarar med:", data); 
-
-        if (data && data.items) {
-            renderJukeboxLabels(data.items);
-        }
-    } catch (error) { 
-        console.error("Kunde inte hämta spellista", error); 
+        if (data && data.items) renderJukeboxLabels(data.items);
+    } catch (error) {
+        console.error("Kunde inte hämta spellista", error);
     }
 }
 
 function renderJukeboxLabels(items) {
     const container = document.getElementById('layer1-labels');
     container.innerHTML = '';
-    
-    const tracks = items
-        .filter(i => i && i.item && i.item.name) 
-        .map(i => i.item);
-
-    console.log("Antal låtar hittade:", tracks.length); 
+    const tracks = items.filter(i => i && i.item && i.item.name).map(i => i.item);
 
     for (let i = 0; i < tracks.length; i += 2) {
         const trackA = tracks[i];
-        const trackB = tracks[i + 1]; 
-        
-        const artistName = trackA.artists && trackA.artists.length > 0 
-                           ? trackA.artists[0].name 
-                           : "Okänd artist";
+        const trackB = tracks[i + 1];
+        const artistName = trackA.artists?.length > 0 ? trackA.artists[0].name : "Okänd artist";
 
         const label = document.createElement('div');
         label.className = 'jukebox-label';
@@ -142,27 +120,14 @@ function renderJukeboxLabels(items) {
             <div class="label-artist">${artistName}</div>
             <div class="label-song">${trackB ? trackB.name : '-'}</div>
         `;
-
-label.addEventListener('click', () => openModal(trackA, trackB));
+        label.addEventListener('click', () => openModal(trackA, trackB));
         container.appendChild(label);
     }
 }
 
-let isPlayingManually = false;
-let currentCheckLoop = null;
-
 async function playTrack(uri) {
-    isPollingPaused = true; // Pausa polling direkt när vi klickar
-    // VIKTIG ÄNDRING: Hämta overlayn här, och om den inte finns, skapa den direkt!
-    let overlay = document.getElementById('loading-overlay');
-    if (!overlay) {
-        overlay = createOverlay(); 
-    }
-    
-    overlay.classList.remove('hidden'); // Nu kommer detta garanterat fungera
-    
-    isPlayingManually = true;
-    if (currentCheckLoop) clearInterval(currentCheckLoop);
+    let overlay = document.getElementById('loading-overlay') || createOverlay();
+    overlay.classList.remove('hidden');
 
     try {
         await fetch(`${API_URL}/me/player/play`, {
@@ -173,64 +138,19 @@ async function playTrack(uri) {
             },
             body: JSON.stringify({ uris: [uri] })
         });
-
-        let retries = 5; 
-        currentCheckLoop = setInterval(async () => {
-            try {
-                const response = await fetch(`${API_URL}/me/player/currently-playing`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
-                
-                if (response.status === 200) {
-                    const data = await response.json();
-                    if (data.item && data.item.uri === uri) {
-                        updateNowPlaying();
-                        cleanup(); // Hjälpfunktion för att städa upp
-                    }
-                }
-            } catch (err) { console.error(err); }
-            
-            retries--;
-            if (retries <= 0) cleanup();
-        }, 1500);
-
+        await new Promise(resolve => setTimeout(resolve, 800));
+        await updateNowPlaying();
     } catch (error) {
-        console.error("Fel:", error);
-        cleanup();
+        console.error("Fel vid uppspelning:", error);
+    } finally {
+        overlay.classList.add('hidden');
     }
-
-function cleanup() {
-        if (currentCheckLoop) clearInterval(currentCheckLoop);
-        currentCheckLoop = null;
-        isPlayingManually = false;
-        isPollingPaused = false; // Återuppta polling!
-        
-        const overlay = document.getElementById('loading-overlay');
-        if (overlay) overlay.classList.add('hidden');
-    }
- }
-
-async function refreshNowPlaying() {
-    if (isPollingPaused) return;
-    await updateNowPlaying();
 }
 
 function openModal(trackA, trackB) {
     const modal = document.getElementById('jukebox-modal');
-    const btnA = document.getElementById('btn-a');
-    const btnB = document.getElementById('btn-b');
-
-    btnA.innerText = trackA.name;
-    // Använd addEventListener istället för .onclick för bättre stabilitet
-    btnA.onclick = null; // Rensa gamla klick
-    btnA.addEventListener('click', () => { playTrack(trackA.uri); closeModal(); });
-    
-    btnB.innerText = trackB ? trackB.name : "Ingen låt";
-    btnB.onclick = null;
-    if (trackB) {
-        btnB.addEventListener('click', () => { playTrack(trackB.uri); closeModal(); });
-    }
-
+    document.getElementById('btn-a').onclick = () => { playTrack(trackA.uri); closeModal(); };
+    document.getElementById('btn-b').onclick = trackB ? () => { playTrack(trackB.uri); closeModal(); } : null;
     modal.classList.remove('hidden');
 }
 
@@ -243,68 +163,46 @@ async function updateNowPlaying() {
         const response = await fetch(`${API_URL}/me/player/currently-playing`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
-
         if (response.status === 200) {
             const data = await response.json();
-            if (data && data.item) {
+            if (data?.item) {
                 document.getElementById('np-title').innerText = data.item.name;
                 document.getElementById('np-artist').innerText = data.item.artists[0].name;
                 document.getElementById('np-image').src = data.item.album.images[0].url;
             }
         }
-    } catch (err) {
-        console.error("Kunde inte hämta aktuell låt:", err);
-    }
+    } catch (err) { console.error("Kunde inte hämta låt:", err); }
 }
 
-async function skipTrack() {
-    try {
-        await fetch(`${API_URL}/me/player/next`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-        console.log("Skippade låt!");
-    } catch (err) { console.error("Skip misslyckades", err); }
-}
 function createOverlay() {
     let overlay = document.getElementById('loading-overlay');
     if (!overlay) {
-        const container = document.getElementById('layer1-labels');
         overlay = document.createElement('div');
         overlay.id = 'loading-overlay';
         overlay.className = 'hidden';
         overlay.innerText = 'Väntar på Spotify...';
-        container.appendChild(overlay);
+        document.getElementById('layer1-labels').appendChild(overlay);
     }
     return overlay;
 }
 
 async function init() {
-    console.log("Init körs...");
     const urlParams = new URLSearchParams(window.location.search);
     let code = urlParams.get('code');
     
-    // 1. Om vi har kod, byt ut den mot en token
     if (code) {
-        console.log("Kod hittad, byter ut mot token...");
         await getToken(code);
         window.history.replaceState({}, document.title, window.location.pathname);
     }
     
-    // 2. Hämta token och uppdatera den globala variabeln
     accessToken = localStorage.getItem('access_token');
     
-    // 3. Visa rätt vy
-if (accessToken) {
+    if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
-        
         createOverlay();
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
-        
-        // ISTÄLLET FÖR STARTPOLLING:
-        // Hämta låten EN gång vid start
-        updateNowPlaying(); 
+        updateNowPlaying();
     }
 }
 
