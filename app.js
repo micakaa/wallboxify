@@ -184,7 +184,10 @@ label.addEventListener('click', () => openModal(trackA, trackB));
     }
 }
 
+let isPlayingManually = false;
+
 async function playTrack(uri) {
+    isPlayingManually = true; 
     try {
         await fetch(`${API_URL}/me/player/play`, {
             method: 'PUT',
@@ -195,29 +198,33 @@ async function playTrack(uri) {
             body: JSON.stringify({ uris: [uri] })
         });
 
-        // Loop som kollar 3 gånger med 500ms mellanrum för att bekräfta bytet
-        let retries = 3;
+        let retries = 5; 
         const check = setInterval(async () => {
             const response = await fetch(`${API_URL}/me/player/currently-playing`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-            const data = await response.json();
             
-            // Om låten vi får tillbaka matchar den vi skickade, så lyckades bytet!
-            if (data.item && data.item.uri === uri) {
-                updateNowPlaying();
-                clearInterval(check);
+            if (response.status === 200) {
+                const data = await response.json();
+                if (data.item && data.item.uri === uri) {
+                    updateNowPlaying();
+                    clearInterval(check);
+                    isPlayingManually = false; // <--- Återställ flaggan här!
+                }
             }
             
             retries--;
-            if (retries === 0) clearInterval(check);
-        }, 500);
+            if (retries <= 0) {
+                clearInterval(check);
+                isPlayingManually = false; // <--- Återställ även om vi misslyckas!
+            }
+        }, 1000);
 
     } catch (error) {
         console.error("Fel vid uppspelning:", error);
+        isPlayingManually = false; // <--- Återställ vid fel
     }
 }
-
 function openModal(trackA, trackB) {
     const modal = document.getElementById('jukebox-modal');
     const btnA = document.getElementById('btn-a');
@@ -261,7 +268,10 @@ async function updateNowPlaying() {
 }
 
 async function startPolling() {
-    setInterval(updateNowPlaying, 5000); // Kör vart 5:e sekund
+    setInterval(async () => {
+        if (isPlayingManually) return; // Gör inget om vi precis bytt låt manuellt
+        await updateNowPlaying();
+    }, 5000);
 }
 
 async function skipTrack() {
