@@ -334,23 +334,61 @@ async function refreshNowPlaying() {
     //await loadQueue();
 }
 
-async function init() {
+async function refreshAccessToken() {
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) {
+        console.error("Ingen refresh token hittades.");
+        return;
+    }
 
+    const body = new URLSearchParams({
+        client_id: CLIENT_ID,
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken
+    });
+
+    try {
+        const response = await fetch(TOKEN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        });
+
+        const data = await response.json();
+        
+        if (data.access_token) {
+            accessToken = data.access_token; // Uppdatera globala variabeln
+            localStorage.setItem('access_token', data.access_token);
+            
+            if (data.refresh_token) {
+                localStorage.setItem('refresh_token', data.refresh_token);
+            }
+            console.log("Ny token hämtades smidigt i bakgrunden!");
+        }
+    } catch (e) {
+        console.error("Kunde inte hämta ny token:", e);
+    }
+}
+
+async function init() {
+    console.log("Init körs...");
+    
+    // 1. SKAPA VARIABELN FÖRST
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // 2. SEDAN KAN VI ANVÄNDA DEN
+    let code = urlParams.get('code');
+    
     // -- KIOSK HACK: För att logga in gamla iPads --
     let injectToken = urlParams.get('inject_token');
     if (injectToken) {
         console.log("Injicerar refresh token manuellt!");
         localStorage.setItem('refresh_token', injectToken);
-        // Rensa URL:en så att token inte ligger kvar synligt
         window.history.replaceState({}, document.title, window.location.pathname);
-        // Hämta en ny access token direkt
         await refreshAccessToken();
     }
-    console.log("Init körs...");
-    const urlParams = new URLSearchParams(window.location.search);
-    let code = urlParams.get('code');
     
-    // 1. Om vi har kod, byt ut den mot en token
+    // 3. Om vi har kod från vanliga inloggningen, byt ut den mot en token
     if (code) {
         console.log("Kod hittad, byter ut mot token...");
         await getToken(code);
