@@ -78,7 +78,7 @@ async function init() {
     if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
-        loadPlaylist('37i9dQZF1DWTMYgB8TqtmR');
+        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
         startPolling();
     }
 }
@@ -105,17 +105,22 @@ async function getToken(code) {
 
 async function loadPlaylist(playlistId) {
     try {
-        const response = await fetch(`${API_URL}/playlists/${playlistId}/items?limit=100`, {
+        // OBS! Vi använder /tracks här, det är den officiella endpointen
+        const response = await fetch(`${API_URL}/playlists/${playlistId}/items`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
+        
         const data = await response.json();
         
-        console.log("Spotify svarar med:", data); // <--- LÄGG TILL DENNA
+        console.log("Spotify svarar med:", data); 
 
+        // För /tracks endpointen heter datan 'items' direkt
         if (data && data.items) {
             renderJukeboxLabels(data.items);
         }
-    } catch (error) { console.error("Kunde inte hämta spellista", error); }
+    } catch (error) { 
+        console.error("Kunde inte hämta spellista", error); 
+    }
 }
 
 function renderJukeboxLabels(items) {
