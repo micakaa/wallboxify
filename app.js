@@ -88,9 +88,16 @@ async function getToken(code) {
         console.log("Svar från Spotify (Token):", data);
         
         if (data.access_token) {
-            localStorage.setItem('access_token', data.access_token);
-            console.log("Token sparades i localStorage!");
-        } else {
+            localStorage.setItem('access_token', data.access_token);
+            
+            // --- DETTA SAKNAS: Spara refresh_token! ---
+            if (data.refresh_token) {
+                localStorage.setItem('refresh_token', data.refresh_token);
+                console.log("Refresh token sparades!");
+            }
+            
+            console.log("Token sparades i localStorage!");
+        } else {
             console.error("Spotify gav ingen token. Svar:", data);
         }
     } catch (e) {
