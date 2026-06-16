@@ -68,14 +68,21 @@ async function init() {
     const urlParams = new URLSearchParams(window.location.search);
     let code = urlParams.get('code');
     
+    // 1. Om vi har en kod, BYT den mot en token först
     if (code) {
         await getToken(code);
+        // Rensa URL:en från ?code=... så att vi inte försöker byta samma kod igen vid refresh
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
     
-    // Vi kollar bara accessToken EN gång här
+    // 2. Kontrollera om vi har en token (antingen från localStorage eller från getToken precis nu)
+    accessToken = localStorage.getItem('access_token');
+    
     if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
+        
+        createOverlay(); // Skapa overlayen dynamiskt
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
         startPolling();
 
@@ -83,6 +90,10 @@ async function init() {
         if (skipBtn) {
             skipBtn.addEventListener('click', skipTrack);
         }
+    } else {
+        // Om vi inte har någon token, se till att inloggningsskärmen syns
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('app-container').classList.add('hidden');
     }
 }
 
