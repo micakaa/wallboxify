@@ -207,6 +207,8 @@ async function startPolling() {
                 const data = await response.json();
                 // Här uppdaterar du HTML-elementen för "Nu spelas"
                 document.getElementById('track-name').innerText = data.item.name;
+                } catch (error) {
+                    console.error("Ett fel uppstod:", error);
                 }
                 } else if (response.status === 204) {
                 document.getElementById('track-name').innerText = "Ingen låt spelas";
