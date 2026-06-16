@@ -69,6 +69,7 @@ async function init() {
     let code = urlParams.get('code');
     
     if (code) {
+        console.log("Kod funnen, byter...");
         await getToken(code);
         window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -117,8 +118,43 @@ function createOverlay() {
 async function getToken(code) {
     let codeVerifier = localStorage.getItem('code_verifier');
     
-    // Om vi inte har en verifier, avbryt direkt
-    if (!codeVerifier) return;
+    // 1. Kontrollera verifier
+    if (!codeVerifier) {
+        console.error("Ingen code_verifier hittades i localStorage!");
+        return;
+    } // <--- Denna stänger if-satsen korrekt
+
+    // 2. Fortsätt med API-anropet
+    const payload = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            client_id: CLIENT_ID,
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: REDIRECT_URI,
+            code_verifier: codeVerifier,
+        }),
+    };
+
+    try {
+        const response = await fetch(TOKEN_URL, payload);
+        const data = await response.json();
+        
+        console.log("Svar från token-endpoint:", data);
+        
+        if (data.access_token) {
+            accessToken = data.access_token;
+            localStorage.setItem('access_token', accessToken);
+            localStorage.removeItem('code_verifier');
+            console.log("Token sparad!");
+        } else {
+            console.error("Token saknas i svaret!");
+        }
+    } catch (error) { 
+        console.error("Token-fel:", error); 
+    }
+}
 
     const payload = {
         method: 'POST',
@@ -136,13 +172,15 @@ async function getToken(code) {
         const response = await fetch(TOKEN_URL, payload);
         const data = await response.json();
         
+        console.log("Svar från token-endpoint:", data); // VIKTIG LOGG
+        
         if (data.access_token) {
-            accessToken = data.access_token;
-            localStorage.setItem('access_token', accessToken);
-            // Ta bort verifier när den är använd så vi inte försöker igen
-            localStorage.removeItem('code_verifier'); 
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.removeItem('code_verifier');
+            accessToken = data.access_token; // Uppdatera variabeln direkt!
+            console.log("Token sparad!");
         } else {
-            console.warn("Kunde inte byta kod, troligen redan använd.");
+            console.error("Token saknas i svaret! Felmeddelande:", data.error_description || data.error);
         }
     } catch (error) { 
         console.error("Token-fel:", error); 
