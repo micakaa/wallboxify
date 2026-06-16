@@ -297,7 +297,7 @@ document.getElementById('skip-btn').addEventListener('click', () => {
 async function refreshNowPlaying() {
     if (isPollingPaused) return;
     await updateNowPlaying();
-    await loadQueue();
+    //await loadQueue();
 }
 
 async function init() {
