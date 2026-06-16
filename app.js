@@ -171,6 +171,26 @@ function renderJukeboxLabels(items) {
     }
 }
 
-function startPolling() { /* ...din polling-kod... */ }
+function openModal(artistName, trackA, trackB) {
+    alert("Du klickade på: " + artistName);
+    // Här lägger du senare till logik för att visa en ruta på skärmen
+}
+
+async function startPolling() {
+    // Hämta status var 3:e sekund
+    setInterval(async () => {
+        try {
+            const response = await fetch(`${API_URL}/me/player/currently-playing`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            if (response.status === 200) {
+                const data = await response.json();
+                // Här uppdaterar du HTML-elementen för "Nu spelas"
+                document.getElementById('track-name').innerText = data.item.name;
+            }
+        } catch (err) { console.error("Polling-fel", err); }
+    }, 3000);
+}
+
 
 init();
