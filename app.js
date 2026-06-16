@@ -83,7 +83,9 @@ async function init() {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
         
-        const playlistId = '37i9dQZF1DWTMYgB8TqtmR';
+        // Här måste vi anropa funktionen och skicka med ID:t
+        loadPlaylist('37i9dQZF1DWTMYgB8TqtmR'); 
+        
         startPolling();
     }
 }
@@ -121,13 +123,16 @@ async function getToken(code) {
 }
 
 // 4. Hämta spellista
-async function loadPlaylist() {
-    const playlistId = '37i9dQZF1DXcBWIGoYBM5M'; 
+// Ändra signaturen här till att acceptera 'id'
+async function loadPlaylist(playlistId) {
     
     try {
+        // Och använd variabeln här istället för den hårdkodade
         const response = await fetch(`${API_URL}/playlists/${playlistId}/tracks?limit=100`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
+        
+        // ... resten av koden är samma
         
         if (response.status === 401) {
             localStorage.removeItem('access_token');
