@@ -1,6 +1,6 @@
 const CLIENT_ID = '967bcd3da47147ea807f9f951a1e0281';
 const REDIRECT_URI = 'https://micakaa.github.io/wallboxify/';
-const AUTH_URL = 'https://accounts.spotify.com/authorize?';
+const AUTH_URL = 'https://accounts.spotify.com/authorize';
 const TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const API_URL = 'https://api.spotify.com/v1';
 
@@ -183,22 +183,30 @@ async function playTrack(uri) {
 }
 
 function openModal(trackA, trackB) {
-    const modal = document.getElementById('jukebox-modal');
-    const btnA = document.getElementById('btn-a');
-    const btnB = document.getElementById('btn-b');
+    const modal = document.getElementById('jukebox-modal');
+    const btnA = document.getElementById('btn-a');
+    const btnB = document.getElementById('btn-b');
 
-    btnA.innerText = trackA.name;
-    // Använd addEventListener istället för .onclick för bättre stabilitet
-    btnA.onclick = null; // Rensa gamla klick
-    btnA.addEventListener('click', () => { playTrack(trackA.uri); closeModal(); });
-    
-    btnB.innerText = trackB ? trackB.name : "Ingen låt";
-    btnB.onclick = null;
-    if (trackB) {
-        btnB.addEventListener('click', () => { playTrack(trackB.uri); closeModal(); });
-    }
+    // Sätt upp Knapp A
+    btnA.innerText = trackA.name;
+    btnA.onclick = () => { 
+        playTrack(trackA.uri); 
+        closeModal(); 
+    };
+    
+    // Sätt upp Knapp B (om det finns en andra låt på lappen)
+    if (trackB) {
+        btnB.innerText = trackB.name;
+        btnB.onclick = () => { 
+            playTrack(trackB.uri); 
+            closeModal(); 
+        };
+    } else {
+        btnB.innerText = "Ingen låt";
+        btnB.onclick = null; // Avaktivera knappen om låt saknas
+    }
 
-    modal.classList.remove('hidden');
+    modal.classList.remove('hidden');
 }
 
 function closeModal() {
