@@ -3,8 +3,6 @@ const REDIRECT_URI = 'https://micakaa.github.io/wallboxify/';
 const AUTH_URL = 'https://accounts.spotify.com/authorize?';
 const TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const API_URL = 'https://api.spotify.com/v1';
-const sp = 'spo' + 'tify.com';
-
 
 const SCOPES = [
     'user-modify-playback-state',
