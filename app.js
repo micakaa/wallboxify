@@ -80,19 +80,15 @@ async function init() {
     accessToken = localStorage.getItem('access_token');
     console.log("Token läst från storage:", accessToken);
     
-    // 3. Visa rätt skärm och starta appen
-    if (accessToken) {
+if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
-        createOverlay(); // Skapa overlayen när appen startar
+        
+        createOverlay(); // Detta skapar elementet nu
+        
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
         startPolling();
-    } else {
-        console.log("Ingen token hittad, visar inloggningsskärm.");
-        document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('app-container').classList.add('hidden');      
     }
-    
 }
 
 async function getToken(code) {
@@ -230,10 +226,14 @@ async function playTrack(uri) {
     }
 
     function cleanup() {
-        if (currentCheckLoop) clearInterval(currentCheckLoop);
-        currentCheckLoop = null;
-        isPlayingManually = false;
-        overlay.classList.add('hidden'); // Dölj grått filter
+    if (currentCheckLoop) clearInterval(currentCheckLoop);
+    currentCheckLoop = null;
+    isPlayingManually = false;
+    
+    // Hämta overlayen säkert
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
     }
 }
 function openModal(trackA, trackB) {
@@ -295,12 +295,16 @@ async function skipTrack() {
     } catch (err) { console.error("Skip misslyckades", err); }
 }
 function createOverlay() {
-    const container = document.getElementById('layer1-labels');
-    const overlay = document.createElement('div');
-    overlay.id = 'loading-overlay';
-    overlay.className = 'hidden';
-    overlay.innerText = 'Väntar på Spotify...';
-    container.appendChild(overlay);
+    let overlay = document.getElementById('loading-overlay');
+    if (!overlay) {
+        const container = document.getElementById('layer1-labels');
+        overlay = document.createElement('div');
+        overlay.id = 'loading-overlay';
+        overlay.className = 'hidden';
+        overlay.innerText = 'Väntar på Spotify...';
+        container.appendChild(overlay);
+    }
+    return overlay;
 }
 
 init();
