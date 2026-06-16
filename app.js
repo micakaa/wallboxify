@@ -94,7 +94,6 @@ if (skipBtn) {
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
         startPolling();
     }
-}
 
 async function getToken(code) {
     let codeVerifier = localStorage.getItem('code_verifier');
