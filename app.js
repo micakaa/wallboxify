@@ -143,7 +143,7 @@ async function loadPlaylist(playlistId) {
 
         // För /tracks endpointen heter datan 'items' direkt
         if (data && data.items) {
-            Labels(data.items);
+            renderJukeboxLabels(data.items);
         }
     } catch (error) { 
         console.error("Kunde inte hämta spellista", error); 
@@ -235,7 +235,7 @@ async function startPolling() {
                     if (el) el.innerText = data.item.name;
                 }
             } else if (response.status === 204) {
-                const el = document.getElementById('track-name');
+                const el = document.getElementById('np-title');
                 if (el) el.innerText = "Ingen låt spelas";
             }
         } catch (err) {
