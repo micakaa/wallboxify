@@ -115,16 +115,15 @@ function createOverlay() {
         startPolling();
     }
 
+// --- Inloggnings-logik ---
 async function getToken(code) {
     let codeVerifier = localStorage.getItem('code_verifier');
     
-    // 1. Kontrollera verifier
     if (!codeVerifier) {
-        console.error("Ingen code_verifier hittades i localStorage!");
+        console.error("Ingen code_verifier hittades!");
         return;
-    } // <--- Denna stänger if-satsen korrekt
+    }
 
-    // 2. Fortsätt med API-anropet
     const payload = {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -149,43 +148,13 @@ async function getToken(code) {
             localStorage.removeItem('code_verifier');
             console.log("Token sparad!");
         } else {
-            console.error("Token saknas i svaret!");
+            console.error("Token saknas i svaret! Fel:", data.error_description || data.error);
         }
     } catch (error) { 
         console.error("Token-fel:", error); 
     }
 }
-
-    const payload = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            client_id: CLIENT_ID,
-            grant_type: 'authorization_code',
-            code: code,
-            redirect_uri: REDIRECT_URI,
-            code_verifier: codeVerifier,
-        }),
-    };
-
-    try {
-        const response = await fetch(TOKEN_URL, payload);
-        const data = await response.json();
-        
-        console.log("Svar från token-endpoint:", data); // VIKTIG LOGG
-        
-        if (data.access_token) {
-            localStorage.setItem('access_token', data.access_token);
-            localStorage.removeItem('code_verifier');
-            accessToken = data.access_token; // Uppdatera variabeln direkt!
-            console.log("Token sparad!");
-        } else {
-            console.error("Token saknas i svaret! Felmeddelande:", data.error_description || data.error);
-        }
-    } catch (error) { 
-        console.error("Token-fel:", error); 
-    }
-}
+// <-- Här ska nästa funktion (t.ex. loadPlaylist) börja direkt!
 
 async function loadPlaylist(playlistId) {
     try {
