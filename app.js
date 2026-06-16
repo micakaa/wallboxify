@@ -302,7 +302,11 @@ async function skipTrack() {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
+       
         console.log("Skippade låt!");
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await loadQueue();
+        refreshNowPlaying()
     } catch (err) { console.error("Skip misslyckades", err); }
 }
 function createOverlay() {
