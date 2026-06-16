@@ -188,9 +188,10 @@ let isPlayingManually = false;
 let currentCheckLoop = null;
 
 async function playTrack(uri) {
+    const overlay = document.getElementById('loading-overlay');
+    overlay.classList.remove('hidden'); // Aktivera grått filter/paus
+    
     isPlayingManually = true;
-
-    // 1. Om en verifierings-loop redan körs, döda den direkt!
     if (currentCheckLoop) clearInterval(currentCheckLoop);
 
     try {
@@ -204,8 +205,6 @@ async function playTrack(uri) {
         });
 
         let retries = 5; 
-        
-        // 2. Starta ny loop och spara den i currentCheckLoop
         currentCheckLoop = setInterval(async () => {
             try {
                 const response = await fetch(`${API_URL}/me/player/currently-playing`, {
@@ -216,24 +215,26 @@ async function playTrack(uri) {
                     const data = await response.json();
                     if (data.item && data.item.uri === uri) {
                         updateNowPlaying();
-                        clearInterval(currentCheckLoop);
-                        currentCheckLoop = null; // Rensa
-                        isPlayingManually = false;
+                        cleanup(); // Hjälpfunktion för att städa upp
                     }
                 }
-            } catch (err) { console.error("Polling-fel", err); }
+            } catch (err) { console.error(err); }
             
             retries--;
-            if (retries <= 0) {
-                clearInterval(currentCheckLoop);
-                currentCheckLoop = null;
-                isPlayingManually = false;
-            }
-        }, 1500); // Höjt till 1500ms för att vara snällare mot Spotify
+            if (retries <= 0) cleanup();
+        }, 1500);
 
     } catch (error) {
-        console.error("Fel vid uppspelning:", error);
+        console.error("Fel:", error);
+        cleanup();
+    }
+
+    // Hjälpfunktion för att städa upp
+    function cleanup() {
+        if (currentCheckLoop) clearInterval(currentCheckLoop);
+        currentCheckLoop = null;
         isPlayingManually = false;
+        overlay.classList.add('hidden'); // Dölj grått filter
     }
 }
 function openModal(trackA, trackB) {
