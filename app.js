@@ -69,12 +69,16 @@ async function init() {
     let code = urlParams.get('code');
     if (code) {
         await getToken(code);
-        window.history.replaceState({}, document.title, window.location.pathname);
+        // ...
     }
+    
+    // VIKTIGT: Kontrollera att denna körs
+    console.log("Token finns:", !!accessToken); 
+    
     if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
-        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
+        loadPlaylist('37i9dQZF1DWTMYgB8TqtmR');
         startPolling();
     }
 }
@@ -104,12 +108,13 @@ async function loadPlaylist(playlistId) {
         const response = await fetch(`${API_URL}/playlists/${playlistId}/items?limit=100`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
-        if (response.status === 403) { console.error("403 Forbidden"); return; }
         const data = await response.json();
-// Skicka data.items vidare till funktionen ovan
-if (data && data.items) {
-    renderJukeboxLabels(data.items); 
-}
+        
+        console.log("Spotify svarar med:", data); // <--- LÄGG TILL DENNA
+
+        if (data && data.items) {
+            renderJukeboxLabels(data.items);
+        }
     } catch (error) { console.error("Kunde inte hämta spellista", error); }
 }
 
