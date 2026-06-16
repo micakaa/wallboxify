@@ -335,6 +335,17 @@ async function refreshNowPlaying() {
 }
 
 async function init() {
+
+    // -- KIOSK HACK: För att logga in gamla iPads --
+    let injectToken = urlParams.get('inject_token');
+    if (injectToken) {
+        console.log("Injicerar refresh token manuellt!");
+        localStorage.setItem('refresh_token', injectToken);
+        // Rensa URL:en så att token inte ligger kvar synligt
+        window.history.replaceState({}, document.title, window.location.pathname);
+        // Hämta en ny access token direkt
+        await refreshAccessToken();
+    }
     console.log("Init körs...");
     const urlParams = new URLSearchParams(window.location.search);
     let code = urlParams.get('code');
