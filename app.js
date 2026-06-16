@@ -185,9 +185,14 @@ label.addEventListener('click', () => openModal(trackA, trackB));
 }
 
 let isPlayingManually = false;
+let currentCheckLoop = null;
 
 async function playTrack(uri) {
-    isPlayingManually = true; 
+    isPlayingManually = true;
+
+    // 1. Om en verifierings-loop redan körs, döda den direkt!
+    if (currentCheckLoop) clearInterval(currentCheckLoop);
+
     try {
         await fetch(`${API_URL}/me/player/play`, {
             method: 'PUT',
@@ -199,30 +204,36 @@ async function playTrack(uri) {
         });
 
         let retries = 5; 
-        const check = setInterval(async () => {
-            const response = await fetch(`${API_URL}/me/player/currently-playing`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            
-            if (response.status === 200) {
-                const data = await response.json();
-                if (data.item && data.item.uri === uri) {
-                    updateNowPlaying();
-                    clearInterval(check);
-                    isPlayingManually = false; // <--- Återställ flaggan här!
+        
+        // 2. Starta ny loop och spara den i currentCheckLoop
+        currentCheckLoop = setInterval(async () => {
+            try {
+                const response = await fetch(`${API_URL}/me/player/currently-playing`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    if (data.item && data.item.uri === uri) {
+                        updateNowPlaying();
+                        clearInterval(currentCheckLoop);
+                        currentCheckLoop = null; // Rensa
+                        isPlayingManually = false;
+                    }
                 }
-            }
+            } catch (err) { console.error("Polling-fel", err); }
             
             retries--;
             if (retries <= 0) {
-                clearInterval(check);
-                isPlayingManually = false; // <--- Återställ även om vi misslyckas!
+                clearInterval(currentCheckLoop);
+                currentCheckLoop = null;
+                isPlayingManually = false;
             }
-        }, 1000);
+        }, 1500); // Höjt till 1500ms för att vara snällare mot Spotify
 
     } catch (error) {
         console.error("Fel vid uppspelning:", error);
-        isPlayingManually = false; // <--- Återställ vid fel
+        isPlayingManually = false;
     }
 }
 function openModal(trackA, trackB) {
