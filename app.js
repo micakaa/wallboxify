@@ -139,28 +139,24 @@ async function loadPlaylist(playlistId) {
 }
 
 function renderJukeboxLabels(items) {
-    console.log("Här är ett exempel-objekt:", items[0]); // <--- VIKTIG RAD
     const container = document.getElementById('layer1-labels');
     container.innerHTML = '';
-
-    console.log("Antal items som skickas till renderare:", items.length); // DEBUG
     
-    // Vi filtrerar stenhårt:
-    // 1. item måste finnas
-    // 2. item.track måste finnas
-    // 3. item.track.artists måste finnas
+    // Vi filtrerar på 'item.item' eftersom det är där din låtdata ligger
     const tracks = items
-        .filter(item => item && item.track && item.track.artists && item.track.artists.length > 0)
-        .map(item => item.track);
+        .filter(i => i && i.item && i.item.name) 
+        .map(i => i.item);
 
-    console.log("Antal låtar efter filtrering:", tracks.length); // DEBUG
+    console.log("Antal låtar hittade:", tracks.length); 
 
     for (let i = 0; i < tracks.length; i += 2) {
         const trackA = tracks[i];
         const trackB = tracks[i + 1]; 
         
-        // Nu är vi 100% säkra på att trackA och trackA.artists finns
-        const artistName = trackA.artists[0].name;
+        // Vi hämtar artisten från trackA.artists
+        const artistName = trackA.artists && trackA.artists.length > 0 
+                           ? trackA.artists[0].name 
+                           : "Okänd artist";
 
         const label = document.createElement('div');
         label.className = 'jukebox-label';
