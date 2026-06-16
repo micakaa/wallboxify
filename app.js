@@ -67,20 +67,22 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 async function init() {
     const urlParams = new URLSearchParams(window.location.search);
     let code = urlParams.get('code');
+    
     if (code) {
         await getToken(code);
-        // ...
-        if (accessToken) {
+    }
+    
+    // Kör bara logiken EN gång om vi har en token
+    if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
         startPolling();
 
-        // Koppla knappen HÄR, när vi vet att appen är laddad
         const skipBtn = document.getElementById('skip-btn');
-if (skipBtn) {
-    skipBtn.addEventListener('click', skipTrack);
-}
+        if (skipBtn) {
+            skipBtn.addEventListener('click', skipTrack);
+        }
     }
 }
     }
