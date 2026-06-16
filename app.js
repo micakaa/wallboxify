@@ -83,7 +83,7 @@ async function init() {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
         
-        const playlistId = '6HLWm9Fwfx26zYnxSZBcf5';
+        const playlistId = '37i9dQZF1DWTMYgB8TqtmR';
         startPolling();
     }
 }
