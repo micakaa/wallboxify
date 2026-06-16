@@ -209,7 +209,7 @@ function cleanup() {
         if (overlay) overlay.classList.add('hidden');
     }
  }
-}
+
 function openModal(trackA, trackB) {
     const modal = document.getElementById('jukebox-modal');
     const btnA = document.getElementById('btn-a');
