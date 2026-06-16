@@ -70,6 +70,19 @@ async function init() {
     if (code) {
         await getToken(code);
         // ...
+        if (accessToken) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
+        startPolling();
+
+        // Koppla knappen HÄR, när vi vet att appen är laddad
+        const skipBtn = document.querySelector('.skip-btn');
+        if (skipBtn) {
+            skipBtn.addEventListener('click', skipTrack);
+        }
+    }
+}
     }
     
     // VIKTIGT: Kontrollera att denna körs
@@ -131,7 +144,7 @@ async function loadPlaylist(playlistId) {
 
         // För /tracks endpointen heter datan 'items' direkt
         if (data && data.items) {
-            renderJukeboxLabels(data.items);
+            Labels(data.items);
         }
     } catch (error) { 
         console.error("Kunde inte hämta spellista", error); 
@@ -166,8 +179,8 @@ function renderJukeboxLabels(items) {
             <div class="label-song">${trackB ? trackB.name : '-'}</div>
         `;
 
-        // Ändra anropet i loopen så att den skickar med specifika låten
-        label.addEventListener('click', () => playTrack(trackA.uri));
+        // Ändra denna rad inne i din for-loop:
+label.addEventListener('click', () => openModal(trackA, trackB));
         container.appendChild(label);
     }
 }
@@ -242,8 +255,5 @@ async function skipTrack() {
         console.log("Skippade låt!");
     } catch (err) { console.error("Skip misslyckades", err); }
 }
-
-// Koppla knappen i init eller direkt i HTML
-document.querySelector('.skip-btn').addEventListener('click', skipTrack);
 
 init();
