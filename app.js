@@ -192,9 +192,12 @@ async function playTrack(uri) {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ uris: [uri] }) // Här används URI:n du klickade på!
+            body: JSON.stringify({ uris: [uri] })
         });
-        console.log("Spelar nu: " + uri);
+
+        // Vänta 1 sekund så Spotify hinner byta låt, uppdatera sedan UI direkt
+        setTimeout(updateNowPlaying, 1000); 
+
     } catch (error) {
         console.error("Fel vid uppspelning:", error);
     }
@@ -223,40 +226,27 @@ function closeModal() {
     document.getElementById('jukebox-modal').classList.add('hidden');
 }
 
-async function startPolling() {
-    console.log("Polling har startat!");
-    
-    setInterval(async () => {
-        try {
-            const response = await fetch(`${API_URL}/me/player/currently-playing`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
+async function updateNowPlaying() {
+    try {
+        const response = await fetch(`${API_URL}/me/player/currently-playing`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
 
-            if (response.status === 200) {
-                const data = await response.json(); // 'data' skapas HÄR
-                
-                // Vi gör all användning av 'data' INUTI detta block:
-                if (data && data.item) {
-                    console.log("Nu spelas:", data.item.name);
-                    
-                    const titleEl = document.getElementById('np-title');
-                    const artistEl = document.getElementById('np-artist');
-                    const imgEl = document.getElementById('np-image');
-
-                    if (titleEl) titleEl.innerText = data.item.name;
-                    if (artistEl) artistEl.innerText = data.item.artists[0].name;
-                    if (imgEl && data.item.album.images.length > 0) {
-                        imgEl.src = data.item.album.images[0].url;
-                    }
-                }
-            } else if (response.status === 204) {
-                const el = document.getElementById('np-title');
-                if (el) el.innerText = "Ingen låt spelas";
+        if (response.status === 200) {
+            const data = await response.json();
+            if (data && data.item) {
+                document.getElementById('np-title').innerText = data.item.name;
+                document.getElementById('np-artist').innerText = data.item.artists[0].name;
+                document.getElementById('np-image').src = data.item.album.images[0].url;
             }
-        } catch (err) {
-            console.error("Polling-fel:", err);
         }
-    }, 5000); 
+    } catch (err) {
+        console.error("Kunde inte hämta aktuell låt:", err);
+    }
+}
+
+async function startPolling() {
+    setInterval(updateNowPlaying, 5000); // Kör vart 5:e sekund
 }
 
 async function skipTrack() {
