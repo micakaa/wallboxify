@@ -64,98 +64,72 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 });
 
 async function init() {
+    console.log("Init körs...");
     const urlParams = new URLSearchParams(window.location.search);
     let code = urlParams.get('code');
+    
+    // 1. Om vi har kod i URL:en, byt ut den mot en token NU
     if (code) {
-        console.log("Kod funnen, byter...");
-        await getToken(code); // <-- Await här är avgörande!
+        console.log("Kod hittad i URL, byter ut mot token...");
+        await getToken(code);
+        // Rensa URL:en så vi inte triggar detta igen
         window.history.replaceState({}, document.title, window.location.pathname);
     }
     
+    // 2. Hämta accessToken från localStorage (nu ska den finnas där)
     accessToken = localStorage.getItem('access_token');
-    console.log("Token finns:", !!accessToken);
+    console.log("Token läst från storage:", accessToken);
     
-    // 3. Kontrollera och starta appen
+    // 3. Visa rätt skärm och starta appen
     if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
-        
-        createOverlay(); 
+        createOverlay(); // Skapa overlayen när appen startar
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
         startPolling();
-
-        const skipBtn = document.getElementById('skip-btn');
-        if (skipBtn) {
-            skipBtn.addEventListener('click', skipTrack);
-        }
     } else {
+        console.log("Ingen token hittad, visar inloggningsskärm.");
         document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('app-container').classList.add('hidden');
+        document.getElementById('app-container').classList.add('hidden');      
     }
-}
-
-function createOverlay() {
-    const container = document.getElementById('layer1-labels');
-    // Kolla om den redan finns för att undvika dubbletter
-    if (!document.getElementById('loading-overlay')) {
-        const overlay = document.createElement('div');
-        overlay.id = 'loading-overlay';
-        overlay.className = 'hidden';
-        overlay.innerText = 'Väntar på Spotify...';
-        container.appendChild(overlay);
-    }
-}
-
-    // VIKTIGT: Kontrollera att denna körs
-    console.log("Token finns:", !!accessToken); 
     
-    if (accessToken) {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app-container').classList.remove('hidden');
-        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
-        startPolling();
-    }
+}
 
 async function getToken(code) {
-    let codeVerifier = localStorage.getItem('code_verifier');
-    
+    const codeVerifier = localStorage.getItem('code_verifier');
     if (!codeVerifier) {
-        console.error("Ingen code_verifier hittades!");
+        console.error("KRITISKT FEL: code_verifier saknas!");
         return;
     }
 
-    const payload = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            client_id: CLIENT_ID,
-            grant_type: 'authorization_code',
-            code: code,
-            redirect_uri: REDIRECT_URI,
-            code_verifier: codeVerifier,
-        }),
-    };
+    const body = new URLSearchParams({
+        client_id: CLIENT_ID,
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: REDIRECT_URI,
+        code_verifier: codeVerifier,
+    });
 
     try {
-        const response = await fetch(TOKEN_URL, payload);
-        const data = await response.json();
+        const response = await fetch(TOKEN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        });
         
-        console.log("Svar från token-endpoint:", data);
+        const data = await response.json();
+        console.log("Svar från Spotify (Token):", data);
         
         if (data.access_token) {
-            accessToken = data.access_token;
-            localStorage.setItem('access_token', accessToken);
-            localStorage.removeItem('code_verifier');
-            console.log("Token sparad!");
+            localStorage.setItem('access_token', data.access_token);
+            console.log("Token sparades i localStorage!");
         } else {
-            console.error("Token saknas i svaret! Fel:", data.error_description || data.error);
+            console.error("Spotify gav ingen token. Svar:", data);
         }
-    } catch (error) { 
-        console.error("Token-fel:", error); 
+    } catch (e) {
+        console.error("Nätverksfel vid token-hämtning:", e);
     }
 }
-// <-- Här ska nästa funktion (t.ex. loadPlaylist) börja direkt!
-
 async function loadPlaylist(playlistId) {
     try {
         const response = await fetch(`${API_URL}/playlists/${playlistId}/items`, {
@@ -327,19 +301,6 @@ function createOverlay() {
     overlay.className = 'hidden';
     overlay.innerText = 'Väntar på Spotify...';
     container.appendChild(overlay);
-}
-
-// Uppdatera din init() så den anropar createOverlay()
-async function init() {
-    // ... befintlig kod ...
-    if (accessToken) {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app-container').classList.remove('hidden');
-        createOverlay(); // Skapa overlayen när appen startar
-        loadPlaylist('0EhSuHg92oacvq77lKHp1B');
-        startPolling();
-        // ...
-    }
 }
 
 init();
