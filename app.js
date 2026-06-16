@@ -1,5 +1,5 @@
 const CLIENT_ID = '967bcd3da47147ea807f9f951a1e0281';
-const REDIRECT_URI = 'https://wallboxify.netlify.app/';
+const REDIRECT_URI = 'https://micakaa.github.io/wallboxify/';
 
 // --- MASKERADE LÄNKAR FÖR ATT UNDVIKA FEL ---
 const sp = 'spo' + 'tify.com';
