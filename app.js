@@ -1,10 +1,8 @@
 const CLIENT_ID = '967bcd3da47147ea807f9f951a1e0281';
 const REDIRECT_URI = 'https://micakaa.github.io/wallboxify/';
-
-const sp = 'spo' + 'tify.com';
-const AUTH_URL = 'https://accounts.' + sp + '/authorize?';
-const TOKEN_URL = 'https://accounts.' + sp + '/api/token';
-const API_URL = 'https://api.' + sp + '/v1';
+const AUTH_URL = 'https://accounts.spotify.com/authorize?';
+const TOKEN_URL = 'https://accounts.spotify.com/api/token';
+const API_URL = 'https://api.spotify.com/v1';
 
 const SCOPES = [
     'user-modify-playback-state',
@@ -152,15 +150,14 @@ let isPlayingManually = false;
 let currentCheckLoop = null;
 
 async function playTrack(uri) {
-    // 1. Visa overlay
     let overlay = document.getElementById('loading-overlay') || createOverlay();
     overlay.classList.remove('hidden');
     
     isPlayingManually = true;
 
     try {
-        // 2. Skicka play-kommando
-        await fetch(`${API_URL}/me/player/play`, {
+        // Skicka play-kommando
+        const response = await fetch(`${API_URL}/me/player/play`, {
             method: 'PUT',
             headers: { 
                 'Authorization': `Bearer ${accessToken}`,
@@ -169,17 +166,17 @@ async function playTrack(uri) {
             body: JSON.stringify({ uris: [uri] })
         });
 
-        // 3. Vänta kort stund (Spotify behöver några millisekunder för att reagera)
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        // 4. Uppdatera UI EN GÅNG
-        await updateNowPlaying();
-        
-        console.log("Låt uppdaterad!");
+        if (response.ok || response.status === 204) {
+            // Vänta bara en kort stund för att låta Spotifys API hinna "registrera" ändringen
+            await new Promise(resolve => setTimeout(resolve, 200));
+            await updateNowPlaying();
+            console.log("Låt uppdaterad!");
+        } else if (response.status === 429) {
+            console.error("Rate limit nådd! Vänta en stund innan nästa försök.");
+        }
     } catch (error) {
         console.error("Fel vid uppspelning:", error);
     } finally {
-        // 5. Stäng overlay och återställ flaggor
         isPlayingManually = false;
         overlay.classList.add('hidden');
     }
