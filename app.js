@@ -139,6 +139,7 @@ async function loadPlaylist(playlistId) {
 }
 
 function renderJukeboxLabels(items) {
+    console.log("Här är ett exempel-objekt:", items[0]); // <--- VIKTIG RAD
     const container = document.getElementById('layer1-labels');
     container.innerHTML = '';
 
