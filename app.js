@@ -125,12 +125,27 @@ async function getToken(code) {
 // 4. Hämta spellista
 // Ändra signaturen här till att acceptera 'id'
 async function loadPlaylist(playlistId) {
-    
     try {
-        // Och använd variabeln här istället för den hårdkodade
         const response = await fetch(`${API_URL}/playlists/${playlistId}/tracks?limit=100`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
+        
+        if (!response.ok) {
+            console.error("Spotify-fel:", response.status);
+            return; // Stoppa här om det är 403
+        }
+
+        const data = await response.json();
+        
+        // Säkerhetskoll: Om data.items finns, kör .map
+        if (data && data.items) {
+            const tracks = data.items.map(item => item.track).filter(track => track !== null);
+            renderJukeboxLabels(tracks);
+        }
+    } catch (error) {
+        console.error("Kunde inte hämta spellista", error);
+    }
+}
         
         // ... resten av koden är samma
         
