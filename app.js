@@ -366,3 +366,4 @@ async function init() {
 }
 
 init();
+console.log("DIN REFRESH TOKEN ÄR:", localStorage.getItem('refresh_token'));
