@@ -224,12 +224,7 @@ function closeModal() {
 }
 
 async function startPolling() {
-    console.log("Polling har startat!"); // Logga bara en gång vid start
-    const titleEl = document.getElementById('np-title');
-if (titleEl) titleEl.innerText = data.item.name;
-
-const artistEl = document.getElementById('np-artist');
-if (artistEl) artistEl.innerText = data.item.artists[0].name;
+    console.log("Polling har startat!");
     
     setInterval(async () => {
         try {
@@ -238,21 +233,30 @@ if (artistEl) artistEl.innerText = data.item.artists[0].name;
             });
 
             if (response.status === 200) {
-                const data = await response.json();
+                const data = await response.json(); // 'data' skapas HÄR
+                
+                // Vi gör all användning av 'data' INUTI detta block:
                 if (data && data.item) {
-                    console.log("Nu spelas:", data.item.name); // Logga varje gång vi får svar
-                    const el = document.getElementById('np-title'); 
-                    if (el) el.innerText = data.item.name;
+                    console.log("Nu spelas:", data.item.name);
+                    
+                    const titleEl = document.getElementById('np-title');
+                    const artistEl = document.getElementById('np-artist');
+                    const imgEl = document.getElementById('np-image');
+
+                    if (titleEl) titleEl.innerText = data.item.name;
+                    if (artistEl) artistEl.innerText = data.item.artists[0].name;
+                    if (imgEl && data.item.album.images.length > 0) {
+                        imgEl.src = data.item.album.images[0].url;
+                    }
                 }
             } else if (response.status === 204) {
                 const el = document.getElementById('np-title');
                 if (el) el.innerText = "Ingen låt spelas";
             }
         } catch (err) {
-            // Vi loggar felet men loopen fortsätter tack vare try-catch!
             console.error("Polling-fel:", err);
         }
-    }, 5000); // Höjt till 5 sekunder för att inte spamma Spotify-API:et
+    }, 5000); 
 }
 
 async function skipTrack() {
