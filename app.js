@@ -106,24 +106,38 @@ async function loadPlaylist(playlistId) {
         });
         if (response.status === 403) { console.error("403 Forbidden"); return; }
         const data = await response.json();
-        if (data && data.items) {
-            const tracks = data.items.map(item => item.track).filter(t => t !== null);
-            renderJukeboxLabels(tracks);
-        }
+// Skicka data.items vidare till funktionen ovan
+if (data && data.items) {
+    renderJukeboxLabels(data.items); 
+}
     } catch (error) { console.error("Kunde inte hämta spellista", error); }
 }
 
-function renderJukeboxLabels(tracks) {
+function renderJukeboxLabels(items) {
     const container = document.getElementById('layer1-labels');
     container.innerHTML = '';
+    
+    // Vi filtrerar fram bara de objekt som faktiskt har ett 'track'-fält
+    const tracks = items
+        .filter(item => item.track !== null && item.track.artists)
+        .map(item => item.track);
+
     for (let i = 0; i < tracks.length; i += 2) {
         const trackA = tracks[i];
-        const trackB = tracks[i + 1];
+        const trackB = tracks[i + 1]; 
+        
+        // Nu finns trackA.artists, så detta kommer inte längre krascha
         const artistName = trackA.artists[0].name;
+
         const label = document.createElement('div');
         label.className = 'jukebox-label';
-        label.innerHTML = `<div class="label-song">${trackA.name}</div><div class="label-artist">${artistName}</div><div class="label-song">${trackB ? trackB.name : '-'}</div>`;
-        label.addEventListener('click', () => { /* Logik för popup */ });
+        label.innerHTML = `
+            <div class="label-song">${trackA.name}</div>
+            <div class="label-artist">${artistName}</div>
+            <div class="label-song">${trackB ? trackB.name : '-'}</div>
+        `;
+
+        label.addEventListener('click', () => openModal(artistName, trackA, trackB));
         container.appendChild(label);
     }
 }
