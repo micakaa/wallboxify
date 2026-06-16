@@ -97,6 +97,40 @@ async function getToken(code) {
         console.error("Nätverksfel vid token-hämtning:", e);
     }
 }
+
+async function loadQueue() {
+    try {
+        const response = await fetch(`${API_URL}/me/player/queue`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const queueContainer = document.getElementById('queue-list');
+            queueContainer.innerHTML = ''; // Rensa texten "Laddar kö..."
+
+            // Kolla om kön är tom
+            if (!data.queue || data.queue.length === 0) {
+                queueContainer.innerHTML = '<div>Inga låtar i kön</div>';
+                return;
+            }
+
+            // Plocka ut de 3 nästa låtarna (eller ändra siffran till hur många du vill visa)
+            const nextTracks = data.queue.slice(0, 3);
+            
+            nextTracks.forEach(track => {
+                const trackElement = document.createElement('div');
+                trackElement.className = 'queue-item'; // Bra att ha om du vill stila i CSS:en
+                // Använd en fetare text för låt och smalare för artist
+                trackElement.innerHTML = `<strong>${track.name}</strong> <br> ${track.artists[0].name} <hr style="border: 0.5px solid #333; margin: 5px 0;">`;
+                queueContainer.appendChild(trackElement);
+            });
+        }
+    } catch (err) {
+        console.error("Kunde inte hämta kön:", err);
+    }
+}
+
 async function loadPlaylist(playlistId) {
     try {
         const response = await fetch(`${API_URL}/playlists/${playlistId}/items`, {
@@ -257,6 +291,7 @@ function createOverlay() {
 async function refreshNowPlaying() {
     if (isPollingPaused) return;
     await updateNowPlaying();
+    await loadQueue();
 }
 
 async function init() {
