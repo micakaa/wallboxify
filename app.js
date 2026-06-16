@@ -206,12 +206,17 @@ function openModal(trackA, trackB) {
     const btnB = document.getElementById('btn-b');
 
     btnA.innerText = trackA.name;
-    btnA.onclick = () => { playTrack(trackA.uri); closeModal(); };
+    // Använd addEventListener istället för .onclick för bättre stabilitet
+    btnA.onclick = null; // Rensa gamla klick
+    btnA.addEventListener('click', () => { playTrack(trackA.uri); closeModal(); });
     
     btnB.innerText = trackB ? trackB.name : "Ingen låt";
-    btnB.onclick = trackB ? () => { playTrack(trackB.uri); closeModal(); } : null;
+    btnB.onclick = null;
+    if (trackB) {
+        btnB.addEventListener('click', () => { playTrack(trackB.uri); closeModal(); });
+    }
 
-    modal.classList.remove('hidden'); // Visa modalen
+    modal.classList.remove('hidden');
 }
 
 function closeModal() {
@@ -220,6 +225,11 @@ function closeModal() {
 
 async function startPolling() {
     console.log("Polling har startat!"); // Logga bara en gång vid start
+    const titleEl = document.getElementById('np-title');
+if (titleEl) titleEl.innerText = data.item.name;
+
+const artistEl = document.getElementById('np-artist');
+if (artistEl) artistEl.innerText = data.item.artists[0].name;
     
     setInterval(async () => {
         try {
