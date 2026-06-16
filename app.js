@@ -288,6 +288,12 @@ function createOverlay() {
     return overlay;
 }
 
+document.getElementById('skip-btn').addEventListener('click', () => {
+    skipTrack();
+    // Tvinga fram en direkt uppdatering av UI:t så vi inte behöver vänta 5 sekunder
+    setTimeout(refreshNowPlaying, 500); 
+});
+
 async function refreshNowPlaying() {
     if (isPollingPaused) return;
     await updateNowPlaying();
@@ -295,29 +301,33 @@ async function refreshNowPlaying() {
 }
 
 async function init() {
-    console.log("Init körs...");
-    const urlParams = new URLSearchParams(window.location.search);
-    let code = urlParams.get('code');
-    
-    // 1. Om vi har kod, byt ut den mot en token
-    if (code) {
-        console.log("Kod hittad, byter ut mot token...");
-        await getToken(code);
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-    
-    // 2. Hämta token och uppdatera den globala variabeln
-    accessToken = localStorage.getItem('access_token');
-    
-    // 3. Visa rätt vy
-if (accessToken) {
+    console.log("Init körs...");
+    const urlParams = new URLSearchParams(window.location.search);
+    let code = urlParams.get('code');
+    
+    // 1. Om vi har kod, byt ut den mot en token
+    if (code) {
+        console.log("Kod hittad, byter ut mot token...");
+        await getToken(code);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    // 2. Hämta token och uppdatera den globala variabeln
+    accessToken = localStorage.getItem('access_token');
+    
+    // 3. Visa rätt vy
+    if (accessToken) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
         
         createOverlay();
         loadPlaylist('0EhSuHg92oacvq77lKHp1B');
         
-        //updateNowPlaying(); 
+        // 4. Hämta direkt vid start (lägg till await här med!)
+        await refreshNowPlaying();  
+        
+        // 5. Starta loopen som uppdaterar var 5:e sekund (5000 millisekunder)
+        currentCheckLoop = setInterval(refreshNowPlaying, 5000);
     }
 }
 
